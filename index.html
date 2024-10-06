@@ -5,10 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Background Remover</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
         canvas {
-            border: 1px solid black;
+            border: 1px solid #ccc;
             display: block;
             margin: 20px 0;
+            max-width: 100%;
         }
         #progress {
             width: 100%;
@@ -16,21 +26,43 @@
             background-color: #f3f3f3;
             border: 1px solid #ccc;
             display: none;
+            margin-bottom: 20px;
         }
         #progress-bar {
             height: 100%;
             width: 0;
             background-color: #4caf50;
         }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            display: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        @media (max-width: 600px) {
+            button {
+                width: 100%;
+            }
+            canvas {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <input type="file" id="upload" />
+    <h1>Background Remover</h1>
+    <input type="file" id="upload" accept="image/*" />
     <canvas id="canvas"></canvas>
     <div id="progress">
         <div id="progress-bar"></div>
     </div>
-    <button id="download" style="display: none;">Download Image</button>
+    <button id="download">Download Image</button>
 
     <script>
         document.getElementById('upload').addEventListener('change', function(event) {
@@ -56,17 +88,25 @@
                 let progressWidth = 0;
                 const totalPixels = data.length / 4;
 
-                // Loop through each pixel and set a color threshold
-                const threshold = { r: 200, g: 200, b: 200 }; // Adjust these values for your background color
+                // Define target background color (modify as needed)
+                const targetColor = { r: 200, g: 200, b: 200 }; // Example target color
+
+                // Loop through each pixel and calculate color distance
                 for (let i = 0; i < data.length; i += 4) {
                     const r = data[i];
                     const g = data[i + 1];
                     const b = data[i + 2];
 
-                    // Simple thresholding to detect background
-                    if (r > threshold.r && g > threshold.g && b > threshold.b) {
-                        // Set the pixel to transparent
-                        data[i + 3] = 0; // Alpha channel
+                    // Calculate the distance from the target color
+                    const distance = Math.sqrt(
+                        (r - targetColor.r) ** 2 +
+                        (g - targetColor.g) ** 2 +
+                        (b - targetColor.b) ** 2
+                    );
+
+                    // Set threshold for background removal
+                    if (distance < 100) { // Adjust this value for sensitivity
+                        data[i + 3] = 0; // Set alpha to 0 for transparency
                     }
 
                     // Update progress bar
